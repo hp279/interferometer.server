@@ -1,0 +1,21 @@
+	TODO.txt
+	src/main/java/org/interferometer/difference/RestoredTableFunction2.java
+	src/main/java/org/interferometer/linear/DoubleAggregator.java
+	src/main/java/org/interferometer/linear/RectangleQuadraticTask.java
+	src/main/java/org/interferometer/linear/Vector2.java
+	src/main/java/org/interferometer/set/ObjectWithProperties.java
+	src/main/resources/123_sphere_3.bmp
+	src/main/resources/123_sphere_3_x.txt
+	src/main/resources/123_sphere_3_y.txt
+	src/main/resources/54.bmp
+	src/main/resources/54_x.txt
+	src/main/resources/54_y.txt
+	src/main/resources/NEWS.txt
+	src/main/resources/NEWS.txt~
+	src/main/resources/README.md
+	src/main/resources/area.txt~
+	src/main/resources/input.txt~
+	src/main/resources/outputd2.txt~
+	src/main/resources/outputi1.txt
+	src/main/resources/outputi2.txt
+	"src/main/resources/\320\232\320\276\320\273\321\214\321\206\320\276 Can.bmp"

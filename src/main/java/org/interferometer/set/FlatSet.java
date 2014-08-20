@@ -1,5 +1,6 @@
 package org.interferometer.set;
 
-public abstract class FlatSet {
-    public abstract boolean has(double x, double y);
+public abstract class FlatSet extends ObjectWithProperties
+{
+	public abstract boolean has(double x, double y);
 }
