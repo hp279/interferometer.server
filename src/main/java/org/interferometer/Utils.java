@@ -2,6 +2,11 @@ package org.interferometer;
 
 public class Utils
 {
+	static public double sqr(double x)
+	{
+		return x * x;
+	}
+	
 	 /** Арккосинус с учётом полосы */
 	  static public double acos2(double x, int k)
 	  {

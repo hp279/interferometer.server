@@ -2,6 +2,7 @@ package org.interferometer;
 
 import java.io.PrintStream;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.interferometer.function.AbstractFunction2;
@@ -13,9 +14,11 @@ public class StripsInfo
   {
 	  int m, n;
 	  int k[][];
-	  TableFunction2 function;
+	  InterferometerRestoreFunction function;
 	  LinkedList<Strip> strips;
-	  TreeSet<Border> borders;
+	  TreeSet<Border> min_borders,
+	  				  max_borders,
+	  				  nil_borders;
 	  
 	  public static class StripsOptions
 	  {
@@ -37,7 +40,7 @@ public class StripsInfo
 		  		return val > what-e0 && val < what+e0;
 		  	  }
 		  	  
-		  	  public boolean evalDiff(TableFunction2 function, double x, double y, Vector2 what)
+		  	  public boolean evalDiff(TableFunction2 function, double x, double y, double norm)
 		  	  {
 		  		  //System.out.printf("\n(x, y, h1) = (%.15f, %.15f, %.15f)", x, y, h1);
 		  		  if(!eval_diff1)
@@ -46,7 +49,7 @@ public class StripsInfo
 				  {
 		  			//System.out.printf(" good (x, y, h1) in [%f; %f]*[%f; %f]", function.getMinX(), function.getMaxX(), function.getMinY(), function.getMaxY());
 					  Vector2 diff1 = function.diff(x, y, h1);
-					  return diff1.sub(what).getNormInf() < e1;
+					  return diff1.isNorm2Equal(norm, e1);//diff1.sub(what).getNormInf() < e1;
 				  }
 		  		  return false;
 		  	  }
@@ -112,22 +115,25 @@ public class StripsInfo
 		  	  }
 		  }
 		  EvaluateOptions min_options,
-		  				  max_options;
+		  				  max_options,
+		  				  nil_options;
 	  	  boolean eval_diff1; // проверять ли градиент		  
 	  	  boolean eval_diff2; // проверять ли матрицу 2-х производных
 	  	  boolean check_constant_center; // проверять ли принадлежность к центру полосы, где функция постоянна
+	  	  boolean create_nil_borders; // строить ли границы, где значения функции равны 0
 	  	  
-	  	  public StripsOptions(boolean eval_diff1, boolean eval_diff2, boolean check_constant_center)
+	  	  public StripsOptions(boolean eval_diff1, boolean eval_diff2, boolean check_constant_center, boolean create_nil_borders)
 	  	  {
 	  		  this.min_options = null;
 	  		  this.max_options = null;
 			  this.eval_diff1 = eval_diff1;
 			  this.eval_diff2 = eval_diff2;
 			  this.check_constant_center = check_constant_center;
+			  this.create_nil_borders = create_nil_borders;
 	  	  }
 	  	  public StripsOptions()
 	  	  {
-	  		  this(false, false, true);
+	  		  this(false, true, true, true);
 	  	  }
 	  	  public EvaluateOptions getMinOptions()
 	  	  {
@@ -137,6 +143,10 @@ public class StripsInfo
 	  	  {
 	  		  return max_options;
 	  	  }
+	  	  public EvaluateOptions getNilOptions()
+	  	  {
+	  		  return nil_options;
+	  	  }
 	  	  public void setMinOptions(double h1, double h2, double e0, double e1, double e2)
 	  	  {
 	  		  min_options = new EvaluateOptions(h1, h2, e0, e1, e2);
@@ -144,6 +154,15 @@ public class StripsInfo
 	  	  public void setMaxOptions(double h1, double h2, double e0, double e1, double e2)
 	  	  {
 	  		  max_options = new EvaluateOptions(h1, h2, e0, e1, e2);
+	  	  }
+	  	  public void setNilOptions(double h1, double h2, double e0, double e1, double e2)
+	  	  {
+	  		  nil_options = new EvaluateOptions(h1, h2, e0, e1, e2);
+	  	  }
+	  	  
+	  	  public boolean mustCreateNilBorders()
+	  	  {
+	  		  return this.create_nil_borders;
 	  	  }
 	  }
 	  StripsOptions options;	  
@@ -167,7 +186,11 @@ public class StripsInfo
 		MayBeMin, // возможная точка минимума
 		PossibleMin, // точка минимума, причисленная к какой-то линии
 		PossibleMinAndBegin, // точка минимума, являющаяся началом или концом какой-то линии
-		IThinkMin // окончательно идентифицирована как точка минимума и часть линии
+		IThinkMin, // окончательно идентифицирована как точка минимума и часть линии
+		MayBeNil, // возможная точка, где функция равна 0
+		PossibleNil, // точка равенства 0, причисленная к какой-то линии
+		PossibleNilAndBegin, // точка равенства 0, являющаяся началом или концом какой-то линии
+		IThinkNil // окончательно идентифицирована как точка, где функция равна 0, и часть линии уровня
 	  }
 	  
 	  PixelType[][] evaluations;
@@ -183,11 +206,13 @@ public class StripsInfo
 			  for(int j=0; j<n; ++j)
 				  evaluations[i][j] = PixelType.Nothing;
 		  this.strips = new LinkedList<Strip>();
-		  this.borders = new TreeSet<Border>();
+		  this.min_borders = new TreeSet<Border>();
+		  this.max_borders = new TreeSet<Border>();
+		  this.nil_borders = new TreeSet<Border>();
 		  this.status = Status.NotRestored;		
 	  }
 	  
-	  public StripsInfo(TableFunction2 function, StripsOptions options)
+	  public StripsInfo(InterferometerRestoreFunction function, StripsOptions options)
 	  {
 		  this.function = function;
 		  this.m = function.getSizeX() + 1;
@@ -223,11 +248,15 @@ public class StripsInfo
 				case MayBeMax: out.printf("+1   "); break;
 				case PossibleMax: out.printf("+2   "); break;
 				case PossibleMaxAndBegin: out.printf("+2.1 "); break;
-				case IThinkMax: out.printf("3    "); break;
+				case IThinkMax: out.printf("+3   "); break;
 				case MayBeMin: out.printf("-1   "); break;
 				case PossibleMin: out.printf("-2   "); break;
 				case PossibleMinAndBegin: out.printf("-2.1 "); break;
 				case IThinkMin: out.printf("-3   "); break;
+				case MayBeNil: out.printf("0.1  "); break;
+				case PossibleNil: out.printf("0.2  "); break;
+				case PossibleNilAndBegin: out.printf("0.21 "); break;
+				case IThinkNil: out.printf("0.3  "); break;
 				}
 			  else
 				  out.printf("--   ");
@@ -241,12 +270,11 @@ public class StripsInfo
 			out.print('\n');
 		}
 	  }
-	  
-	  // предварительная оценка, где могут быть максимумы
-	  private void evaluateMaxBorders()
+	      	  
+	  private void evaluateBorders(StripsOptions.EvaluateOptions opts, 
+			  						double must_value, double must_grad, double must_det, double must_trace,
+			  						PixelType eval_type)
 	  {
-		  StripsOptions.EvaluateOptions opts = options.getMaxOptions();
-		  Vector2 zero = new Vector2();
 		  for(int i=0; i<m; ++i)
 		  for(int j=0; j<n; ++j)
 		  {
@@ -255,54 +283,54 @@ public class StripsInfo
 			  if(function.hasArgument(x, y))
 			  {
 				  double val = function.getValue(i, j);
-				  if(opts.evalFunction(val, 1))
+				  if(opts.evalFunction(val, must_value))
 				  {
-						  if(opts.evalDiff(function, x, y, zero) && opts.isConstantCenter(function, x, y))
+						  if(opts.evalDiff(function, x, y, must_grad) && opts.isConstantCenter(function, x, y))
 						  {
-							  if(opts.evalDiff2(function, x, y, 0, -1)) 
-									  this.evaluations[i][j] = PixelType.MayBeMax;
-						  }
-				  }
-			  }
-		  }
-	  }
-	  
-	  // определяем максимумы функций там, где это возможно:
-	  private void createMaxBorders()
-	  {
-		  evaluateMaxBorders();
-		  // TODO: а теперь создаём связные линии 
-	  }
-
-	  private void evaluateMinBorders()
-	  {
-		  StripsOptions.EvaluateOptions opts = options.getMinOptions();
-		  Vector2 zero = new Vector2();
-		  for(int i=0; i<m; ++i)
-		  for(int j=0; j<n; ++j)
-		  {
-			  double x = function.getArgument1(i),
-					 y = function.getArgument2(j); 
-			  if(function.hasArgument(x, y))
-			  {
-				  double val = function.getValue(i, j);
-				  if(opts.evalFunction(val, -1))
-				  {
-						  if(opts.evalDiff(function, x, y, zero) && opts.isConstantCenter(function, x, y))
-						  {
-							  if(opts.evalDiff2(function, x, y, 0, 1)) 
-									  this.evaluations[i][j] = PixelType.MayBeMin;
+							  if(opts.evalDiff2(function, x, y, must_det, must_trace)) 
+									  this.evaluations[i][j] = eval_type;
 						  }
 				  }
 			  }
 		  } 
 	  }
 	  
+	  private void createBorderLines(Set<Border> borders, PixelType may_be_type, PixelType possible_type, PixelType possible_type_and_begin)
+	  {
+		  // TODO: сделать
+	  }
+	  
 	  // определяем минимумы функций там, где это возможно:
 	  private void createMinBorders()
 	  {
-		  evaluateMinBorders();
-		  // TODO: а теперь создаём связные линии 
+		  evaluateBorders(options.getMinOptions(), -1,
+				  			0, 
+				  			0, Utils.sqr(function.getXCoef()),
+				  			PixelType.MayBeMin);
+		  createBorderLines(this.min_borders, PixelType.MayBeMin, PixelType.PossibleMin, PixelType.PossibleMinAndBegin); 
+	  }
+	  
+	  // определяем максимумы функций там, где это возможно:
+	  private void createMaxBorders()
+	  {
+		  evaluateBorders(options.getMaxOptions(), 1,
+				  			0,
+				  			0, -Utils.sqr(function.getXCoef()),
+				  			PixelType.MayBeMax);
+		  createBorderLines(this.max_borders, PixelType.MayBeMax, PixelType.PossibleMax, PixelType.PossibleMaxAndBegin); 
+	  }
+	  
+	  private void createNilBorders()
+	  {
+		  if(options.mustCreateNilBorders())
+		  {
+			  evaluateBorders(options.getNilOptions(), 0, 
+					  		function.getXCoef(), 
+					  		0, 0, 
+					  		PixelType.MayBeNil);
+			  System.out.printf("Nil borders created!");
+			  createBorderLines(this.nil_borders, PixelType.MayBeNil, PixelType.PossibleNil, PixelType.PossibleNilAndBegin); 
+		  }
 	  }
 	  
 	  // соединяем полосы:
@@ -321,6 +349,7 @@ public class StripsInfo
 	  {
 		  createMaxBorders();
 		  createMinBorders();
+		  createNilBorders();
 		  this.status = Status.BordersRestored; // TODO: проверить, что всё хорошо, иначе Error
 		  if(status == Status.BordersRestored)
 		  {

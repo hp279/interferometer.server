@@ -11,6 +11,8 @@ import org.interferometer.function.AbstractFunction1;
 import org.interferometer.function.AbstractFunction2;
 import org.interferometer.function.TableFunction2;
 import org.interferometer.linear.DoubleAggregator;
+import org.interferometer.linear.TableAction;
+import org.ojalgo.function.aggregator.AggregatorFunction;
 
 // F(x) = cos(pi(delta f(x) + ax + b)/lambda)
 public class InterferometerRestoreFunction extends TableFunction2
@@ -50,9 +52,22 @@ public class InterferometerRestoreFunction extends TableFunction2
 	  this.evalParams();
   }
   
+  public double getA()
+  {
+	  return a;
+  }
+  public double getLambda()
+  {
+	  return lambda;
+  }
   public double getPeriod()
   {
 	  return 2*lambda/a;
+  }
+  // коэффициент при x внутри косинуса
+  public double getXCoef()
+  {
+	  return Math.PI * a / lambda;
   }
   
   /** оцениваем параметры a, b, lambda, не зная их */
@@ -60,18 +75,27 @@ public class InterferometerRestoreFunction extends TableFunction2
   {
 	  if(this.currentStripsInfo == null)
 	  {
-		  double h1 = Math.max(Math.max(this.getStepX(), this.getStepY()), 4*deltaz),
-				  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz)),
+		  double h1 = Math.max(Math.max(this.getStepX(), this.getStepY()), 4*deltaz/getXCoef()),
+				  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz)/getXCoef()),
 				  e0 = 0.05,
 				  e1 = 0.01,
 				  e2 = 0.01;
 		  StripsInfo.StripsOptions options = new StripsInfo.StripsOptions();
 		  options.setMaxOptions(h1, h2, e0, e1, e2);
 		  options.setMinOptions(h1, h2, e0, e1, e2);
+		  options.setNilOptions(h1, h2, e0, e1, e2);
 		  this.setStripsInfo(options);
 	  }
 	  this.currentStripsInfo.createStrips();
 	  double sumborders = 0;
+/*	  this.iterate(new TableAction<TableFunction2>(sumborders)
+			  {
+				@Override
+				public void act(TableFunction2 a, int row, int col) {
+					// TODO Auto-generated method stub
+					
+				}
+			  });*/
 	  // TODO: использовать тут AggregatorFunction
 	  for(int i=0; i<=getSizeX(); ++i)
 	  for(int j=0; j<=getSizeY(); ++j)
@@ -158,30 +182,38 @@ public class InterferometerRestoreFunction extends TableFunction2
   public void createStrips()
   {
 	  double T = getPeriod();
-	  double h1 = T/2, // постепенно будем уменьшать до max(deltax, deltay, 4*deltaz)
-			 h2 = T/2; // постепенно будем уменьшать до max(deltax, deltay, Math.sqrt(8*deltaz))
+	  double h1 = T/2, // постепенно будем уменьшать до max(deltax, deltay, 4*deltaz/getXCoef()
+			 h2 = T/2; // постепенно будем уменьшать до max(deltax, deltay, Math.sqrt(8*deltaz)/getXCoef()
 	  double	 e0 = deltaz, // постепенно будем увеличивать до 0.5
-				 e1 = Math.max(deltaz, 2 * deltaz / h1), // постепенно будем увеличивать до 0.5
-				 e2 = Math.max(deltaz, 4 * deltaz / (h2*h2)); // постепенно будем увеличивать до 0.5
+				 e1 = Math.max(deltaz, 2 * deltaz / (h1 * getXCoef())), // постепенно будем увеличивать до 0.5
+				 e2 = Math.max(deltaz, 4 * deltaz / (h2*h2 * getXCoef())); // постепенно будем увеличивать до 0.5
 	  // TODO: сделать цикл, пока не получим приличные полоски
 	  StripsInfo.StripsOptions options = new StripsInfo.StripsOptions();
 	  
 	  h1 = T/8; //Math.max(Math.max(this.getStepX(), this.getStepY()), 4*deltaz);
-	  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz));
+	  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz)/getXCoef());
 	  e0 = deltaz; //0.5;
-	  e1 = Math.max(deltaz, 2 * deltaz / h1); //0.5;
-	  e2 = 0.5; 
+	  e1 = Math.max(deltaz, 2 * deltaz / (h1*getXCoef())); //0.5;
+	  e2 = 0.5 / getXCoef(); 
 	  System.out.printf("\nh1=%f h2=%f e0=%f e1=%f e2=%f", h1, h2, e0, e1, e2);
 	  options.setMaxOptions(h1, h2, e0, e1, e2);
 	  
 	  h1 = T/8; // Math.max(Math.max(this.getStepX(), this.getStepY()), 4*deltaz);
-	  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz));
+	  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz)/getXCoef());
 	  e0 = deltaz*2; //0.5
-	  e1 = 0.5;
-	  e2 = 0.5; 
+	  e1 = 0.5 / getXCoef();
+	  e2 = 0.5 / getXCoef(); 
 	  System.out.printf("\nh1=%f h2=%f e0=%f e1=%f e2=%f", h1, h2, e0, e1, e2);
-	  options.setMinOptions(h1, h2, e0, e1, e2);	  
+	  options.setMinOptions(h1, h2, e0, e1, e2);
 	  
+	  h1 = T/8; // Math.max(Math.max(this.getStepX(), this.getStepY()), 4*deltaz);
+	  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz)/getXCoef());
+	  e0 = deltaz*5; //0.5
+	  e1 = 0.5 / getXCoef();
+	  e2 = 0.5 / getXCoef(); 
+	  System.out.printf("\nh1=%f h2=%f e0=%f e1=%f e2=%f", h1, h2, e0, e1, e2);
+	  options.setNilOptions(h1, h2, e0, e1, e2);	  
+
 	  this.setStripsInfo(options);
 	  this.currentStripsInfo.createStrips();
   }
@@ -197,16 +229,19 @@ public class InterferometerRestoreFunction extends TableFunction2
 		  createStrips();
 	  if(currentStripsInfo.getStatus() != StripsInfo.Status.StripsRestored)
 		  currentStripsInfo.createStrips();
-	  // TODO: переделать это с помощью функции 2 целочисленных аргументов
 	  InterferometerRestoreFunction temp = new InterferometerRestoreFunction(this.type,
 			  													this.getMinX(), this.getMaxX(), 
 			  													this.getMinY(), this.getMaxY(),
 				 												this.getSizeX(), this.getSizeY(), 
 				 												this.a, this.b, this.lambda, this.deltaz);
-	  for(int i=0; i<getSizeX()+1; ++i)
-	  for(int j=0; j<getSizeY()+1; ++j)
-		  if(hasArgument(getArgument1(i), getArgument2(j)))
-			  temp.setValue(i, j, this.getOriginal(i, j));
+	  temp.iterate(new TableAction<TableFunction2>()
+			  {
+				@Override
+				public void act(TableFunction2 a, int row, int col) {
+					((InterferometerRestoreFunction)a).setValue(row, col, InterferometerRestoreFunction.this.getOriginal(row, col));
+				}		  		
+			  }
+			  );
 	  TableFunction2 result = new TableFunction2(this.getMinX(), this.getMaxX(),
 			  									 this.getMinY(), this.getMaxY(),
 			  									 this.getSizeX(), this.getSizeY());
