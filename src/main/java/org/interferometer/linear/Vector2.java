@@ -68,4 +68,15 @@ public class Vector2
 	}	
 	
 	// TODO: isNormInfEqual
+	
+	public double product(Vector2 a)
+	{
+		return this.a1 * a.a1 + this.a2 * a2;
+	}
+	
+	public double angle(Vector2 b)
+	{
+		return Math.acos(this.product(b) / (this.getNorm2() * b.getNorm2()));
+	}
+	
 }

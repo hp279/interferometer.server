@@ -4,7 +4,7 @@ import java.util.TreeSet;
 
 public class Strip {
 
-    TreeSet<Pixel> pixels;
+    TreeSet<IntPoint> pixels;
 
     public enum Type {
         Increasing, Decreasing, Undefined;
@@ -14,7 +14,7 @@ public class Strip {
 
     public Strip(final Type type) {
         this.type = type;
-        this.pixels = new TreeSet<Pixel>();
+        this.pixels = new TreeSet<IntPoint>();
     }
 
     public Strip() {

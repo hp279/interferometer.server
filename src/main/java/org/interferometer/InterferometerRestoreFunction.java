@@ -80,7 +80,7 @@ public class InterferometerRestoreFunction extends TableFunction2
 				  e0 = 0.05,
 				  e1 = 0.01,
 				  e2 = 0.01;
-		  StripsInfo.StripsOptions options = new StripsInfo.StripsOptions();
+		  StripsOptions options = new StripsOptions();
 		  options.setMaxOptions(h1, h2, e0, e1, e2);
 		  options.setMinOptions(h1, h2, e0, e1, e2);
 		  options.setNilOptions(h1, h2, e0, e1, e2);
@@ -173,7 +173,7 @@ public class InterferometerRestoreFunction extends TableFunction2
 	  return this.currentStripsInfo;
   }
   
-  public void setStripsInfo(StripsInfo.StripsOptions options)
+  public void setStripsInfo(StripsOptions options)
   {
 	  this.currentStripsInfo = new StripsInfo(this, options);
 	  // TODO: сделать поддержку нескольких вариантов располосовки
@@ -188,7 +188,7 @@ public class InterferometerRestoreFunction extends TableFunction2
 				 e1 = Math.max(deltaz, 2 * deltaz / (h1 * getXCoef())), // постепенно будем увеличивать до 0.5
 				 e2 = Math.max(deltaz, 4 * deltaz / (h2*h2 * getXCoef())); // постепенно будем увеличивать до 0.5
 	  // TODO: сделать цикл, пока не получим приличные полоски
-	  StripsInfo.StripsOptions options = new StripsInfo.StripsOptions();
+	  StripsOptions options = new StripsOptions();
 	  
 	  h1 = T/8; //Math.max(Math.max(this.getStepX(), this.getStepY()), 4*deltaz);
 	  h2 = Math.max(Math.max(this.getStepX(), this.getStepY()), Math.sqrt(8*deltaz)/getXCoef());
