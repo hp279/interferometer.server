@@ -373,6 +373,6 @@ static void testInterferFromFile(String filename, FlatSet area, double a)
 	  double a1 = 1,
 			 a2 = 30.0 / 420,
 			 a3 = 30.0 / 396;
-	  testInterferFromFile(file2, area2, a2);
+	  testInterferFromFile(file3, area3, a3);
   }
 }

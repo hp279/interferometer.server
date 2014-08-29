@@ -5,6 +5,10 @@ import java.util.LinkedList;
 
 import org.interferometer.StripsInfo.PixelType;
 
+/** Последовательность точек, соединённая в границу.
+ * Может быть замкнута в кольцо (тогда считаем, что за последней точкой идёт первая).
+ * Класс не отслеживает самопересечения и замыкания в кольцо - за этим следит класс StripsInfo.
+  */
 public class Border implements Comparable<Border>
 {
 	public enum Type
@@ -48,6 +52,7 @@ public class Border implements Comparable<Border>
 	Type type;
 	LinkedList<IntPoint> pixels;
 	StripsInfo field;
+	boolean is_ring;
 	
 	public Border(StripsInfo field, Type type, IntPoint pt)
 	{
@@ -57,6 +62,7 @@ public class Border implements Comparable<Border>
 		this.pixels.addLast(pt);
 		if(this.field != null)
 			this.field.setType(pt, type.getPossibleBeginType());
+		this.is_ring = false;
 	}
 	public Border(IntPoint pt)
 	{
@@ -78,14 +84,41 @@ public class Border implements Comparable<Border>
 		return this.pixels.size() == 1;
 	}
 	
-	public boolean hasBegin(int x, int y)
+	public boolean hasBegin(IntPoint pt)
 	{
-		return this.pixels.getFirst().equals(new IntPoint(x, y));
+		return this.pixels.getFirst().equals(pt);
+	}
+	
+	public IntPoint getFirst()
+	{
+		return this.pixels.getFirst();
+	}
+	public IntPoint getLast()
+	{
+		return this.pixels.getLast();
+	}
+	public IntPoint getPrevLast()
+	{
+		if(this.pixels.size() >= 2)
+		{
+			Iterator<IntPoint> iterator = this.pixels.descendingIterator();
+			iterator.next();
+			return iterator.next();
+		}
+		else
+			return null;
+	}
+
+	public void setRing()
+	{
+		this.is_ring = true;
 	}
 	
 	public void addPixel(IntPoint pt)
 	{
+		System.out.printf("\n add pixel: (%d, %d)", pt.getX(), pt.getY());
 		this.pixels.addLast(pt);
+		this.is_ring = false;
 		if(this.field != null)
 			this.field.setType(pt, type.getPossibleType());
 	}
@@ -95,6 +128,7 @@ public class Border implements Comparable<Border>
 		if(this.field != null)
 			this.field.setType(this.pixels.getLast(), PixelType.Nothing);
 		this.pixels.removeLast();
+		this.is_ring = false;
 	}
 	
 	public void addBeginPixel(IntPoint pt)
@@ -105,6 +139,7 @@ public class Border implements Comparable<Border>
 			this.field.setType(pt, type.getPossibleBeginType());
 		}
 		this.pixels.addFirst(pt);
+		this.is_ring = false;
 	}
 	
 	public void addBegin(Border b)
@@ -114,14 +149,16 @@ public class Border implements Comparable<Border>
 		LinkedList<IntPoint> newpixels = b.pixels;
 		newpixels.addAll(this.pixels);
 		this.pixels = newpixels;
+		this.is_ring = false;
 	}
 	public void addEnd(Border b)
 	{
-											b.pixels.getFirst();
-											type.getPossibleType();
+//											b.pixels.getFirst();
+//											type.getPossibleType();
 		if(this.field != null)
 			this.field.setType(b.pixels.getFirst(), type.getPossibleType());
 		this.pixels.addAll(b.pixels);
+		this.is_ring = false;
 	}
 	
 	public void reverse()
@@ -137,8 +174,18 @@ public class Border implements Comparable<Border>
 			field.setType(pixels.getFirst(), type.getPossibleBeginType());
 		}
 	}
+	public boolean equals(Border arg)
+	{
+		return pixels.isEmpty()? arg.pixels.isEmpty() :
+			 					(!arg.pixels.isEmpty() && pixels.getFirst().equals( arg.pixels.getFirst() ));
+	}
+	public boolean equals(Object o)
+	{
+		return equals((Border)o);
+	}
 	@Override
 	public int compareTo(Border arg0) {
-		return pixels.getFirst().compareTo( arg0.pixels.getFirst() );
+		return pixels.isEmpty()? (arg0.pixels.isEmpty()? 0 : -1) :
+								 (arg0.pixels.isEmpty()? 1 : pixels.getFirst().compareTo( arg0.pixels.getFirst() ));
 	}
 }

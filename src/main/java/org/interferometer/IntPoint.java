@@ -189,7 +189,11 @@ import org.interferometer.linear.Vector2;
 
 		public boolean equals(IntPoint p)
 		{
-			return x == p.x && y == p.y;
+			return p != null && x == p.x && y == p.y;
+		}
+		public boolean equals(Object o)
+		{
+			return o != null && equals((IntPoint)o);
 		}
 		public int compareTo(IntPoint p) {
 			return x > p.x? 

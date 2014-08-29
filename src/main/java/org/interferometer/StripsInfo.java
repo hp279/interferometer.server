@@ -1,9 +1,10 @@
 package org.interferometer;
 
 import java.io.PrintStream;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class StripsInfo
   {
@@ -11,7 +12,7 @@ public class StripsInfo
 	  int k[][];
 	  InterferometerRestoreFunction function;
 	  LinkedList<Strip> strips;
-	  TreeSet<Border> min_borders,
+	  LinkedList<Border> min_borders,
 	  				  max_borders,
 	  				  nil_borders;
 	  
@@ -55,9 +56,9 @@ public class StripsInfo
 			  for(int j=0; j<n; ++j)
 				  evaluations[i][j] = PixelType.Nothing;
 		  this.strips = new LinkedList<Strip>();
-		  this.min_borders = new TreeSet<Border>();
-		  this.max_borders = new TreeSet<Border>();
-		  this.nil_borders = new TreeSet<Border>();
+		  this.min_borders = new LinkedList<Border>();
+		  this.max_borders = new LinkedList<Border>();
+		  this.nil_borders = new LinkedList<Border>();
 		  this.status = Status.NotRestored;		
 	  }
 	  
@@ -160,9 +161,9 @@ public class StripsInfo
 	  {
 		  switch(type)
 		  {
-		  case Max: return this.max_borders.lower(new Border(point));
-		  case Min: return this.min_borders.lower(new Border(point));
-		  case Nil: return this.nil_borders.lower(new Border(point));
+		  case Max: return ArraysEx.find(this.max_borders, new Border(point));
+		  case Min: return ArraysEx.find(this.min_borders, new Border(point));
+		  case Nil: return ArraysEx.find(this.nil_borders, new Border(point));
 		  default: return null;
 		  }
 	  }
@@ -198,43 +199,84 @@ public class StripsInfo
 	  }
 	  private void linkBorder(Border b1, Border b2)
 	  {
-		  b1.addEnd(b2);
-		  removeBorder(b2);
+		  if(b1 == b2) // замыкаем в кольцо
+			  b1.setRing();
+		  else
+		  {
+			  b1.addEnd(b2);
+			  removeBorder(b2);
+		  }
 	  }
+	  
+	  private int getNearNeighbors(IntPoint last_point, IntPoint point, PixelType type, IntPoint.Neighbor neighbors[])
+	  {
+		  if(last_point != null)
+			  System.out.printf("\n getNearNeighbors: last_point=(%d, %d), point=(%d, %d)", last_point.getX(), last_point.getY(), point.getX(), point.getY());
+		  int result = point.getNearNeighborsCount(this.evaluations, type, neighbors);
+		  int from = 0,
+			  real_from = 0;
+		  for(;; ++from, ++real_from)
+			{
+//				System.out.println(real_from);
+//				System.out.println(array[real_from]);
+				while(real_from < result && point.getNeighbor(neighbors[real_from]).equals(last_point))
+					real_from++;
+				if(real_from >= result)
+					break;
+				neighbors[from] = neighbors[real_from];
+			}
+		  return from;
+	  }
+	  private int getFarNeighbors(IntPoint last_point, IntPoint point, PixelType type, IntPoint.Neighbor neighbors[])
+	  {
+		  int result = point.getFarNeighborsCount(this.evaluations, type, neighbors);
+		  int from = 0,
+		  real_from = 0;
+		  for(;; ++from, ++real_from)
+				{
+//					System.out.println(real_from);
+//					System.out.println(array[real_from]);
+					while(real_from < result && point.getNeighbor(neighbors[real_from]).equals(last_point))
+						real_from++;
+					if(real_from >= result)
+						break;
+					neighbors[from] = neighbors[real_from];
+				}
+		  return from;
+	}
 	  
 	  /** Рисует предположительную границу, начиная с заданной точки */	  
 	  private void createBorderLine(Border.Type type, Border newborder, IntPoint current_point)
 	  {
-		  System.out.printf("\n (i, j) = (%d, %d)", current_point.getX(), current_point.getY());
+		  System.out.printf("\n Begin: (i, j) = (%d, %d)", current_point.getX(), current_point.getY());
 		  Border temp_border;
-		  IntPoint last_pt = null,
-				   temp_pt;
+		  IntPoint temp_pt;
 		  IntPoint.Neighbor neighbors[] = new IntPoint.Neighbor[4];
-		  // TODO: учесть возможность замыкания в кольцо
 		  // TODO: сделать удаление из массива предыдущей точки линии, если мы не предполагаем кольцевания
 		  border_cycle: while(true)
 		  {
 			  // проверяем ближних соседей:
-			  int good_neighbors = current_point.getNearNeighborsCount(this.evaluations, type.getPossibleBeginType(), neighbors);
+			  int good_neighbors = getNearNeighbors(newborder.getPrevLast(), current_point, type.getPossibleBeginType(), neighbors);
+			  System.out.printf("\n (i, j) = (%d, %d); good_neighbors = %d", current_point.getX(), current_point.getY(), good_neighbors);
 			  int bad_neighbors = 0;
 			  switch(good_neighbors)
 			  {
-			  case 0: good_neighbors = current_point.getNearNeighborsCount(this.evaluations, type.getMayBeType(), neighbors);
+			  case 0: good_neighbors = getNearNeighbors(newborder.getPrevLast(), current_point, type.getMayBeType(), neighbors);
 			  		switch(good_neighbors)
 			  		{
 			  		case 0: // проверяем дальних соседей:
 			  				// TODO: сделать учёт собственного вектора матрицы 2-х производных
-			  				bad_neighbors = current_point.getFarNeighborsCount(this.evaluations, type.getPossibleType(), neighbors);
+			  				bad_neighbors = getFarNeighbors(newborder.getPrevLast(), current_point, type.getPossibleType(), neighbors);
 			  				// в середину линии мы утыкаться не должны - в этом случае делаем откат:
-			  				if((newborder.isOnlyBegin() && bad_neighbors > 0) || bad_neighbors > 1)
+			  				if(bad_neighbors > 0)
 			  				{
 			  					this.decreaseBorder(newborder);
 				  				break border_cycle;
 			  				}
-			  				good_neighbors = current_point.getFarNeighborsCount(this.evaluations, type.getPossibleBeginType(), neighbors);
+			  				good_neighbors = getFarNeighbors(newborder.getPrevLast(), current_point, type.getPossibleBeginType(), neighbors);
 			  				switch(good_neighbors)
 			  				{
-			  				case 0: good_neighbors = current_point.getFarNeighborsCount(this.evaluations, type.getMayBeType(), neighbors);
+			  				case 0: good_neighbors = getFarNeighbors(newborder.getPrevLast(), current_point, type.getMayBeType(), neighbors);
 			  						switch(good_neighbors)
 			  						{
 			  				  		case 1: temp_pt = current_point.getNeighbor(neighbors[0]);
