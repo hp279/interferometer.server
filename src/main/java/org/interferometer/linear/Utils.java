@@ -1,6 +1,5 @@
 package org.interferometer.linear;
 
-public class Utils
-{
-	 
+public class Utils {
+
 }
