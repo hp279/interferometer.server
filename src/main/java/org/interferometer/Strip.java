@@ -2,6 +2,8 @@ package org.interferometer;
 
 import java.util.TreeSet;
 
+import org.interferometer.util.IntPoint;
+
 public class Strip {
 
     TreeSet<IntPoint> pixels;
