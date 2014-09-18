@@ -87,12 +87,7 @@ public class InterferometerRestoreFunction extends TableFunction2
 					
 				}
 			  });*/
-	  // TODO: использовать тут AggregatorFunction
-	  for(int i=0; i<=getSizeX(); ++i)
-	  for(int j=0; j<=getSizeY(); ++j)
-		  if(hasArgument(getArgument1(i), getArgument2(j)))
-			  sumborders += (this.currentStripsInfo.getType(i, j) == StripsInfo.PixelType.Nothing? 0:1);
-	  a = sumborders / ((getSizeX()+1) * (getSizeY()+1));
+	  a = this.currentStripsInfo.evalStripsNumber() / (getSizeY()+1);
 	  b = 0;
 	  lambda = 1;
   }

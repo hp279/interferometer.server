@@ -2,6 +2,8 @@ package org.interferometer.util;
 
 import org.interferometer.linear.Vector2;
 
+import org.interferometer.util.Pair;
+
 	public class IntPoint implements Comparable<IntPoint>
 	{
 		int x;
@@ -85,6 +87,28 @@ import org.interferometer.linear.Vector2;
 				default: return null;
 		    	}
 		    }
+		    
+		    static public Pair<Neighbor, Neighbor> getNearestDirections(Vector2 vector)
+		    {
+		        double angle = vector.angle();
+		        if(angle >= 0 && angle < Math.PI/4)
+		            return Pair.make(Right, RightUp);
+		        else if(angle >= Math.PI/4 && angle < Math.PI/2)
+                    return Pair.make(RightUp, Up);
+		        else if(angle >= Math.PI/2 && angle < 3*Math.PI/4)
+	                return Pair.make(Up, LeftUp);
+	            else if(angle >= 3*Math.PI/4 && angle < Math.PI)
+	                return Pair.make(LeftUp, Left); 
+		        // TODO: проверить знак угла
+	            else if(angle >= Math.PI && angle < 5*Math.PI/4)
+	                return Pair.make(Left, LeftDown);
+	            else if(angle >= 5*Math.PI/4 && angle < 3*Math.PI/2)
+	                return Pair.make(LeftDown, Down);
+	            else if(angle >= 3*Math.PI/2 && angle < 7*Math.PI/4)
+	                return Pair.make(Down, RightDown);
+	            else // angle >= 7*Math.PI/4 && angle < 2*Math.PI)
+	                return Pair.make(RightDown, Right);
+		    }
 		}
 		
 		public IntPoint(int x, int y)
@@ -99,6 +123,11 @@ import org.interferometer.linear.Vector2;
 		public int getY()
 		{
 			return y;
+		}
+		
+		static public Vector2 getVector(IntPoint pt1, IntPoint pt2)
+		{
+		    return new Vector2(pt2.x - pt1.x, pt2.y - pt1.y);
 		}
 		
 		static public IntPoint getNeighbor(int x, int y, Neighbor n)

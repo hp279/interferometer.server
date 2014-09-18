@@ -156,12 +156,12 @@ public class Test
 		FlatSet biground = new Round(xcenter, ycenter, R),
 				smallround = new Round(xcenter, ycenter, r);
 		FlatSet circle = new Difference(biground, smallround);
-		// сперва вернём левую половину:
-		Rectangle lrect = new Rectangle(-Double.MAX_VALUE, -Double.MAX_VALUE, xcenter, Double.MAX_VALUE),
-				  rrect = new Rectangle(xcenter, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-		lrect.addProperty("QuasiRectConvexV");
-		rrect.addProperty("QuasiRectConvexV");
-		return new Intersection(circle, lrect);
+		// сперва вернём верхнюю половину:
+		Rectangle urect = new Rectangle(-Double.MAX_VALUE, -Double.MAX_VALUE, xcenter, Double.MAX_VALUE),
+				  drect = new Rectangle(xcenter, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+		urect.addProperty("QuasiRectConvexV");
+		drect.addProperty("QuasiRectConvexV");
+		return new Intersection(circle, drect);
 	}
 	
 	

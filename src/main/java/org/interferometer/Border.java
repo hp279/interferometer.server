@@ -3,7 +3,8 @@ package org.interferometer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.interferometer.StripsInfo.PixelType;
+import org.interferometer.BordersInfo;
+import org.interferometer.BordersInfo.PixelType;
 import org.interferometer.util.IntPoint;
 
 /** Последовательность точек, соединённая в границу.
@@ -19,7 +20,53 @@ public class Border implements Comparable<Border>
 		Nil,
 		Empty; // псевдограница - её не существует, она нужна только для поиска
 		
-		public StripsInfo.PixelType getMayBeType()	{
+		public double getValue() {
+		    switch(this) {
+		    case Max:
+		        return 1;
+		    case Min:
+		        return -1;
+		    case Nil: 
+		        return 0;
+		    case Empty:
+		    default:
+		        return Double.NaN;
+		    }
+		}
+		
+	      public double getGradNorm() {
+	            switch(this) {
+	            case Max:
+	                return 0;
+	            case Min:
+	                return 0;
+	            case Nil: 
+	                return 1;
+	            case Empty:
+	            default:
+	                return Double.NaN;
+	            }
+	        }	      
+	      
+	       public double getDiff2Det() {
+	           return 0;
+           }
+	       
+	       public double getDiff2Trace() {
+	                switch(this) {
+	                case Max:
+	                    return -1;
+	                case Min:
+	                    return 1;
+	                case Nil: 
+	                    return 0;
+	                case Empty:
+	                default:
+	                    return Double.NaN;
+	                }
+	            }
+	
+		public BordersInfo.PixelType getMayBeType()	{
 			switch(this) {
 			case Max: 
 				return PixelType.MayBeMax;
@@ -31,7 +78,7 @@ public class Border implements Comparable<Border>
 				return null;
 			}
 		}
-		public StripsInfo.PixelType getPossibleType() {
+		public BordersInfo.PixelType getPossibleType() {
 			switch(this) {
 			case Max: 
 				return PixelType.PossibleMax;
@@ -43,7 +90,7 @@ public class Border implements Comparable<Border>
 				return null;
 			}
 		}
-		public StripsInfo.PixelType getPossibleBeginType() {
+		public BordersInfo.PixelType getPossibleBeginType() {
 			switch(this) {
 			case Max: 
 				return PixelType.PossibleMaxAndBegin;
@@ -55,27 +102,49 @@ public class Border implements Comparable<Border>
 				return null;
 			}
 		}
+		public BordersInfo.PixelType getIThinkType() {
+            switch(this) {
+            case Max: 
+                return PixelType.IThinkMax;
+            case Min:
+                return PixelType.IThinkMin;
+            case Nil:
+                return PixelType.IThinkNil;
+            default:
+                return null;
+            }
+        }
 	}
 	Type type;
 	LinkedList<IntPoint> pixels;
-	StripsInfo field;
+	BordersInfo field;
 	boolean is_ring;
 	
-	public Border(StripsInfo field, Type type, IntPoint pt) {
+	public Border(BordersInfo field, Type type, IntPoint pt) {
 		this.field = field;
 		this.type = type;
 		this.pixels = new LinkedList<IntPoint>();
 		this.pixels.addLast(pt);
-		if(this.field != null)
+		if(this.type != Type.Empty)
 			this.field.setType(pt, type.getPossibleBeginType());
 		this.is_ring = false;
 	}
-	public Border(IntPoint pt)	{
-		this(null, Type.Empty, pt);
+	public Border(BordersInfo field, IntPoint pt)	{
+		this(field, Type.Empty, pt);
 	}
 	
 	public Type getType() {
 		return type;
+	}
+	
+	public void setType(Type type) {
+	    this.type = type;
+	    if(this.field != null && type != Type.Empty) {
+	        Iterator<IntPoint> itr=pixels.iterator();
+	        this.field.setType(itr.next(), type.getPossibleBeginType());
+	        while(itr.hasNext())
+	            this.field.setType(itr.next(), type.getPossibleType());
+	    }
 	}
 	
 	public boolean isEmpty() {
@@ -110,23 +179,37 @@ public class Border implements Comparable<Border>
 		this.is_ring = true;
 	}
 	
+	/** Точку можно добавить так, чтобы она не пересекла другую границу */
+	public boolean canBeAdd(IntPoint pt) {
+	    IntPoint last_pt = this.getLast(),
+	             left_pt = pt.getNeighbor(IntPoint.Neighbor.Left),
+	             up_pt = pt.getNeighbor(IntPoint.Neighbor.Up),
+	             right_pt = pt.getNeighbor(IntPoint.Neighbor.Right),
+	             down_pt = pt.getNeighbor(IntPoint.Neighbor.Down);
+	    return this.field.hasArgument(pt) && !this.field.getType(pt).inLine() &&
+	           (!this.field.hasArgument(left_pt) || left_pt.equals(last_pt) || !this.field.getType(left_pt).inLine()) &&
+	           (!this.field.hasArgument(up_pt) || up_pt.equals(last_pt) || !this.field.getType(up_pt).inLine()) &&
+	           (!this.field.hasArgument(right_pt) || right_pt.equals(last_pt) || !this.field.getType(right_pt).inLine()) &&
+	           (!this.field.hasArgument(down_pt) ||  down_pt.equals(last_pt) ||!this.field.getType(down_pt).inLine());
+	}
+	
 	public void addPixel(IntPoint pt) {
 		System.out.printf("\n add pixel: (%d, %d)", pt.getX(), pt.getY());
 		this.pixels.addLast(pt);
 		this.is_ring = false;
-		if(this.field != null)
+		if(this.field != null && this.type != Type.Empty)
 			this.field.setType(pt, type.getPossibleType());
 	}
 	
 	public void removePixel() {
-		if(this.field != null)
+		if(this.field != null && this.type != Type.Empty)
 			this.field.setType(this.pixels.getLast(), PixelType.Nothing);
 		this.pixels.removeLast();
 		this.is_ring = false;
 	}
 	
 	public void addBeginPixel(IntPoint pt) {
-		if(this.field != null) {
+		if(this.field != null && this.type != Type.Empty) {
 			this.field.setType(this.pixels.getFirst(), type.getPossibleType());
 			this.field.setType(pt, type.getPossibleBeginType());
 		}
@@ -134,19 +217,25 @@ public class Border implements Comparable<Border>
 		this.is_ring = false;
 	}
 	
-	public void addBegin(Border b) {
-		if(this.field != null)
+	/** link_point - имеют ли две кривые общую крайнюю точку */
+	public void addBegin(Border b, boolean link_point) {
+		if(this.field != null && this.type != Type.Empty)
 			field.setType(pixels.getFirst(), type.getPossibleType());
 		LinkedList<IntPoint> newpixels = b.pixels;
+		if(link_point)
+		    newpixels.removeLast();
 		newpixels.addAll(this.pixels);
 		this.pixels = newpixels;
 		this.is_ring = false;
 	}
-	public void addEnd(Border b) {
+	/** link_point - имеют ли две кривые общую крайнюю точку */
+	public void addEnd(Border b, boolean link_point) {
 //											b.pixels.getFirst();
 //											type.getPossibleType();
-		if(this.field != null)
+		if(this.field != null && this.type != Type.Empty)
 			this.field.setType(b.pixels.getFirst(), type.getPossibleType());
+		if(link_point)
+		    b.pixels.removeFirst();
 		this.pixels.addAll(b.pixels);
 		this.is_ring = false;
 	}
@@ -157,7 +246,7 @@ public class Border implements Comparable<Border>
 		while(desc.hasNext())
 			newpixels.addLast(desc.next());
 		this.pixels = newpixels;
-		if(this.field != null) {
+		if(this.field != null && this.type != Type.Empty) {
 			field.setType(pixels.getLast(), type.getPossibleType());
 			field.setType(pixels.getFirst(), type.getPossibleBeginType());
 		}

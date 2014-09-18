@@ -9,6 +9,7 @@ import org.interferometer.linear.TableAction;
 import org.interferometer.set.FlatSet;
 import org.interferometer.set.Intersection;
 import org.interferometer.set.Rectangle;
+import org.interferometer.util.IntPoint;
 import org.ojalgo.access.Access2D;
 import org.ojalgo.function.BinaryFunction;
 import org.ojalgo.function.UnaryFunction;
@@ -183,6 +184,10 @@ public class TableFunction2 extends AbstractFunction2 implements
     public boolean hasArgumentInt(int i, int j) {
         return hasArgument(getArgument1(i), getArgument2(j));
     }
+    
+    public boolean hasArgumentInt(IntPoint pt) {
+        return hasArgumentInt(pt.getX(), pt.getY());
+    }
 
     public double getDistance(int i1, int j1, int i2, int j2) {
         double x1 = getArgument1(i1), y1 = getArgument2(j1), x2 = getArgument1(i2), y2 = getArgument2(j2);
@@ -191,6 +196,10 @@ public class TableFunction2 extends AbstractFunction2 implements
 
     public double getValue(int i, int j) {
         return z[i][j];
+    }
+    
+    public double getValue(IntPoint pt) {
+        return getValue(pt.getX(), pt.getY());
     }
 
     @Override

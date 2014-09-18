@@ -126,6 +126,20 @@ public class StripsOptions {
     public EvaluateOptions getNilOptions() {
         return nil_options;
     }
+    
+    public EvaluateOptions getOptions(Border.Type type) {
+        switch(type) {
+        case Max: 
+            return max_options; 
+        case Min: 
+            return min_options; 
+        case Nil: 
+            return nil_options;
+        case Empty:
+        default:
+            return null;
+        }
+    }
 
     public void setMinOptions(double h1, double h2, double e0, double e1,
             double e2) {
@@ -145,4 +159,9 @@ public class StripsOptions {
     public boolean mustCreateNilBorders() {
         return this.create_nil_borders;
     }
+    
+    public boolean mustCreateBorders(Border.Type type) {
+        return type != Border.Type.Nil || mustCreateNilBorders();
+    }
+    
 }
