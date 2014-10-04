@@ -12,13 +12,13 @@ public class BorderException extends Exception {
         
         public String toString() {
             switch(this) {
-            case IntersectsWithAnotherType:
-                return "не замыкается и не упирается в границу области определения";
-            case IntersectsWithThisType:
-                return "в одном месте сходится больше 2 линий";
-            case MoreThan2Lines:
-                return "пересекается с границей того же типа";
             case NotEdge:
+                return "не замыкается и не упирается в границу области определения";
+            case MoreThan2Lines:
+                return "в одном месте сходится больше 2 линий";
+            case IntersectsWithThisType:
+                return "пересекается с границей того же типа";
+            case IntersectsWithAnotherType:
                 return "пересекается с границей другого типа";
             default:
                 return null;            
