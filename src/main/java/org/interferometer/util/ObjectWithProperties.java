@@ -1,4 +1,4 @@
-package org.interferometer.set;
+package org.interferometer.util;
 
 import java.util.TreeSet;
 

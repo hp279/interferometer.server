@@ -215,14 +215,18 @@ import org.interferometer.util.Pair;
 			int result_near = getNearNeighborsCount(array, value, values, 0);
 			return getNearNeighborsCount(array, value, values, result_near);
 		}
+		
+		public String toString() {
+		    return String.format("(%d, %d)", x, y);
+		}
 
 		public boolean equals(IntPoint p)
 		{
-			return p != null && x == p.x && y == p.y;
+			return (p != null) && (this.x == p.x) && (this.y == p.y);
 		}
 		public boolean equals(Object o)
 		{
-			return o != null && equals((IntPoint)o);
+			return (o != null) && this.equals((IntPoint)o);
 		}
 		public int compareTo(IntPoint p) {
 			return x > p.x? 
@@ -233,5 +237,9 @@ import org.interferometer.util.Pair;
 							1:
 						y < p.y?
 							-1 : 0;
+		}
+		
+		public int hashCode() {
+		    return (x << 16) ^ y;
 		}
 	}

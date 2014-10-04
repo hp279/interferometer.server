@@ -91,6 +91,10 @@ public class StripsOptions {
                 return false;
             return true;
         }
+        
+        public double howBadValue(AbstractFunction2 function, double x, double y, double value) {
+            return Math.abs(value - function.invoke(x, y));
+        }
     }
 
     EvaluateOptions min_options, max_options, nil_options;

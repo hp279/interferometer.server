@@ -1,5 +1,6 @@
 package org.interferometer.set;
 
+import org.interferometer.util.ObjectWithProperties;
 import org.interferometer.linear.Vector2;
 
 public abstract class FlatSet extends ObjectWithProperties {

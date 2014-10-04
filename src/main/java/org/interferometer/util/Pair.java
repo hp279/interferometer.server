@@ -15,4 +15,19 @@ public class Pair<T1, T2>
     {
         return new Pair<T1, T2>(first, second);
     }
+    
+    public String toString() {
+        return String.format("(%s, %s)", first.toString(), second.toString());
+    }
+    
+    public boolean equals(Pair<T1, T2> p) {
+        return first.equals(p.first) && second.equals(p.second);
+    }
+    public boolean equals(Object o) {
+        return (o != null) && this.equals((Pair<T1, T2>)o);
+    }
+    
+    public int hashCode() {
+        return first.hashCode() + second.hashCode();
+    }
 }
