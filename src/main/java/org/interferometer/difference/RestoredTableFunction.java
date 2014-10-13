@@ -9,8 +9,8 @@ import org.ojalgo.matrix.BasicMatrix;
 import org.ojalgo.optimisation.Expression;
 import org.ojalgo.optimisation.ExpressionsBasedModel;
 import org.ojalgo.optimisation.OptimisationSolver;
-import org.ojalgo.optimisation.Variable;
 import org.ojalgo.optimisation.OptimisationSolver.Result;
+import org.ojalgo.optimisation.Variable;
 import org.ojalgo.optimisation.quadratic.QuadraticExpressionsModel;
 
 // функция, восстановленная из разности
