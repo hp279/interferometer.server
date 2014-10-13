@@ -357,8 +357,16 @@ public class Test {
             funy.load(filename + ".bmp");
             funx.createStrips();
             funy.createStrips();
+            
+            StripsInfoToImage sitix = new StripsInfoToImage(filename + ".bmp", funx.getCurrentStripsInfo());
+            sitix.write("mysuperfilex.bmp");
+            
+            StripsInfoToImage sitiy = new StripsInfoToImage(filename + ".bmp", funy.getCurrentStripsInfo());
+            sitiy.write("mysuperfiley.bmp");
+            
             String filename1 = String.format(filename + "_x.txt"), filename2 = String
                     .format(filename + "_y.txt");
+            
             FileOutputStream fdelta1out, fdelta2out;
             fdelta1out = new FileOutputStream(filename1);
             funx.write(new DataOutputStream(fdelta1out));
