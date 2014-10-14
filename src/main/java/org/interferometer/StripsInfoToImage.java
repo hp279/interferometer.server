@@ -40,7 +40,7 @@ public class StripsInfoToImage {
         assert(stripsInfo.borders.evaluations.length == height);
         
         for (int i = 0; i < stripsInfo.borders.evaluations.length; i++) {
-            assert(stripsInfo.borders.evaluations[i].length == width);
+           assert(stripsInfo.borders.evaluations[i].length == width);
            for (int j = 0; j < stripsInfo.borders.evaluations[i].length; j++) {
                PixelType pixelType = stripsInfo.borders.evaluations[i][j];
                        
