@@ -62,10 +62,9 @@ public class Vector2 {
     public double product(Vector2 a) {
         return this.a1 * a.a1 + this.a2 * a2;
     }
-    
+
     /** Направление относительно оси Ox против часовой стрелки */
-    public double angle()
-    {
+    public double angle() {
         return Math.atan2(a2, a1);
     }
 

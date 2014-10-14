@@ -1,7 +1,5 @@
 package org.interferometer.function;
 
-import java.lang.Math;
-
 import java.io.PrintStream;
 import java.util.Scanner;
 
@@ -184,7 +182,7 @@ public class TableFunction2 extends AbstractFunction2 implements
     public boolean hasArgumentInt(int i, int j) {
         return hasArgument(getArgument1(i), getArgument2(j));
     }
-    
+
     public boolean hasArgumentInt(IntPoint pt) {
         return hasArgumentInt(pt.getX(), pt.getY());
     }
@@ -197,7 +195,7 @@ public class TableFunction2 extends AbstractFunction2 implements
     public double getValue(int i, int j) {
         return z[i][j];
     }
-    
+
     public double getValue(IntPoint pt) {
         return getValue(pt.getX(), pt.getY());
     }

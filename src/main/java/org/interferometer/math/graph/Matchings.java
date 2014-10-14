@@ -116,24 +116,23 @@ public class Matchings {
             if(result.degree(v1) > 0) // вершина уже занята
                 continue;
             V maxv = null;
-            double cost,
-                   maxcost =  Double.NEGATIVE_INFINITY;
+            double cost, maxcost = Double.NEGATIVE_INFINITY;
             E maxedge = null;
             for(V v2: result.getVertices()) {
                 if(result.degree(v2) > 0) // вершина уже занята
                     continue;
                 E edge = edge_maker.create(v1, v2);
                 cost = costs.transform(edge).doubleValue();
-                if(cost > maxcost) {
+                if (cost > maxcost) {
                     maxv = v2;
                     maxcost = cost;
                     maxedge = edge;
                 }
             }
-            if(maxv != null) {
+            if (maxv != null) {
                 result.addEdge(maxedge, v1, maxv);
                 System.out.print('+');
-            } 
+            }
         }
         // TODO: сделать поиск паросочетания максимальной стоимости
         return result;

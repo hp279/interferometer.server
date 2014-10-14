@@ -91,8 +91,9 @@ public class StripsOptions {
                 return false;
             return true;
         }
-        
-        public double howBadValue(AbstractFunction2 function, double x, double y, double value) {
+
+        public double howBadValue(AbstractFunction2 function, double x,
+                double y, double value) {
             return Math.abs(value - function.invoke(x, y));
         }
     }
@@ -130,14 +131,14 @@ public class StripsOptions {
     public EvaluateOptions getNilOptions() {
         return nil_options;
     }
-    
+
     public EvaluateOptions getOptions(Border.Type type) {
-        switch(type) {
-        case Max: 
-            return max_options; 
-        case Min: 
-            return min_options; 
-        case Nil: 
+        switch (type) {
+        case Max:
+            return max_options;
+        case Min:
+            return min_options;
+        case Nil:
             return nil_options;
         case Empty:
         default:
@@ -163,9 +164,9 @@ public class StripsOptions {
     public boolean mustCreateNilBorders() {
         return this.create_nil_borders;
     }
-    
+
     public boolean mustCreateBorders(Border.Type type) {
         return type != Border.Type.Nil || mustCreateNilBorders();
     }
-    
+
 }

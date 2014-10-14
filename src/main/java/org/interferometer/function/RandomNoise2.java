@@ -2,8 +2,6 @@ package org.interferometer.function;
 
 import java.util.Random;
 
-import org.ojalgo.function.UnaryFunction;
-
 public class RandomNoise2 extends AbstractFunction2 {
     double q; // среднеквадратичное отклонение
 
