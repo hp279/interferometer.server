@@ -171,8 +171,8 @@ public class BordersInfo {
             double must_trace, PixelType eval_type) {
         for (int i = 0; i < m; ++i)
             for (int j = 0; j < n; ++j) {
-                double x = function.getArgument1(i), y = function
-                        .getArgument2(j);
+                double x = function.getArgument1(i),
+                       y = function.getArgument2(j);
                 if (function.hasArgument(x, y)) {
                     double val = function.getValue(i, j);
                     if (opts.evalFunction(val, must_value)) {
@@ -188,8 +188,8 @@ public class BordersInfo {
     }
 
     private Border findBorder(Border.Type type, IntPoint point) {
-        return ArraysEx.find(this.getBordersByType(type), new Border(this,
-                point));
+        return ArraysEx.find(this.getBordersByType(type),
+                             new Border(this, point));
     }
 
     private Border addBorder(Border.Type type, IntPoint pt) {
@@ -487,34 +487,13 @@ public class BordersInfo {
         return Pair.make(result, mindist);
     }
 
-    /**
-     * пытаемся соединить точку с каким-нибудь бордером или с краем области
-     * определения
-     */
-    /*
-     * private void linkPoint(IntPoint pt, Border.Type type, Set<Border>
-     * borders) { // действуем тупо: сперва пробуем соединить с границей, потом
-     * - с другими бордерами Border border_to_finish =
-     * this.getShortestBorder(pt, type).first; if(border_to_finish != null) {
-     * this.setType(pt, type.getIThinkType()); border_to_finish.setType(type);
-     * borders.add(border_to_finish); } else { Iterator<Border> itr =
-     * borders.iterator();; while(itr.hasNext()) { Border border2 = itr.next();
-     * IntPoint pt21 = border2.getFirst(), pt22 = border2.getLast(); Border
-     * border_between = this.getShortestBorder(pt, pt21, type).first;
-     * if(border_between != null) { this.setType(pt, type.getIThinkType());
-     * this.setType(pt21, type.getIThinkType()); border_between.setType(type);
-     * borders.add(border_between); break; } else { border_between =
-     * this.getShortestBorder(pt, pt22, type).first; if(border_between != null)
-     * { this.setType(pt, type.getIThinkType()); this.setType(pt22,
-     * type.getIThinkType()); border_between.setType(type);
-     * borders.add(border_between); break; } } } } }
-     */
-
     /** соединяем границы, чтобы они удовлетворяли условию замкнутости */
     private void linkBorders(Border.Type type) {
         BorderGraph graph = new BorderGraph(this, type,
                 this.getBordersByType(type));
+        System.out.printf("\nBorder graph has %d edges", graph.getEdgeCount());
         BorderGraph optimal_graph = graph.getMinMatching();
+        System.out.printf("\nModified border graph has %d edges", optimal_graph.getEdgeCount());
         Set<Border> newborders = null;
         try {
             newborders = optimal_graph.getBorders();
@@ -531,15 +510,6 @@ public class BordersInfo {
             // TODO: сделать расщепление поля, чтобы можно было пробовать
             // соединять бордеры по-разному на отдельных полях
         }
-        /*
-         * Iterator<Border> itr = borders.iterator(); while(itr.hasNext()) {
-         * Border border1 = itr.next(); IntPoint pt11 = border1.getFirst(), pt12
-         * = border1.getLast(); if(!pt11.equals(far_point) && this.getType(pt11)
-         * != type.getIThinkType()) linkPoint(pt11, type, newborders);
-         * if(!pt12.equals(far_point) && this.getType(pt12) !=
-         * type.getIThinkType()) linkPoint(pt12, type, newborders); }
-         * borders.addAll(newborders);
-         */
     }
 
     public void createBorders() {

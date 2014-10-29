@@ -9,7 +9,7 @@ import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.set.ListOrderedSet;
 import org.interferometer.Border.EdgePoint;
 import org.interferometer.math.graph.GraphFactory;
-import org.interferometer.math.graph.Matchings;
+import org.interferometer.math.graph.Matching;
 //import org.interferometer.math.graph.Utils;
 import org.interferometer.math.graph.set.Utils;
 import org.interferometer.util.IntPoint;
@@ -134,8 +134,25 @@ public class BorderGraph extends UndirectedSparseGraph<Border.EdgePoint, Pair<Bo
 	public BorderGraph getMinMatching() {
 	    BorderGraph potential_graph = this.getPotentialGraph();
 	    Transformer<Pair<Border, Double>, Double> transformer = getBordersEvaluation();
-	    BorderGraph result = (BorderGraph)Matchings.getMaxMatching(potential_graph, transformer, this);
+	    Matching<EdgePoint, Pair<Border, Double>> matching = 
+	            new Matching<EdgePoint, Pair<Border, Double>>(potential_graph.getVertices(), this);
+	    // Пока для простоты превращаем граф в двудольный и ищем в нем максимальное паросочетание
+	    for(Pair<Border, Double> edge: potential_graph.getEdges()) {
+	        edu.uci.ics.jung.graph.util.Pair<Border.EdgePoint> vertices = potential_graph.getEndpoints(edge);
+	        // оставляем только пары (нечётная 1-я координата; чётная 1-я координата)
+	        if(vertices.getFirst().first.getX() % 2 == 0 && vertices.getSecond().first.getX() % 2 == 0)
+	            potential_graph.removeEdge(edge);
+	        if(vertices.getFirst().first.getX() % 2 == 1 && vertices.getSecond().first.getX() % 2 == 1)
+                potential_graph.removeEdge(edge);
+	    }
+	    // TODO: сделать для графа общего вида
+	    // matching.setMaxMatching(potential_graph, transformer);
+	    System.out.printf("\nBegin search matching...");
+	    matching.setMaxMatchingBiParty(potential_graph);
+	    BorderGraph result = (BorderGraph)matching.getMatching();
+	    System.out.printf("\nEnd search matching. Matching with %d edges", result.getEdgeCount());
 	    Utils.setUnion(this, result);
+	    System.out.printf("\nTotal %d edges", result.getEdgeCount());
 	    return result;
 	}
 	

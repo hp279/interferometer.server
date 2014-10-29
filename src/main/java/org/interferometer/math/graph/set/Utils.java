@@ -1,6 +1,8 @@
 package org.interferometer.math.graph.set;
 
 import java.util.Collection;
+import java.util.HashSet;
+
 import org.interferometer.math.graph.GraphFactory;
 
 import edu.uci.ics.jung.graph.Graph;
@@ -38,6 +40,20 @@ public class Utils {
         return result;
     }
     
+    static public <V, E> Graph<V, E> getSubGraph(Graph<V, E> graph, Collection<V> vertices,
+                                     GraphFactory<V, E> maker) {
+        Graph<V, E> result = makeVoid(vertices, maker);
+        for(V vertex: vertices) {
+            Collection<E> neighbors = graph.getOutEdges(vertex);
+            for(E edge: neighbors) {
+                V vertex2 = graph.getOpposite(vertex, edge);
+                if(vertices.contains(vertex2))
+                    result.addEdge(edge, vertex, vertex2);
+            }
+        }
+        return result;
+    }
+    
     static public <V, E> Graph<V, E> setUnion(Graph<V, E> src, Graph<V, E> dest) {
         copyVoid(src, dest);
         setEdgeUnion(src, dest);
@@ -45,16 +61,18 @@ public class Utils {
     }
     
     static public <V, E> Graph<V, E> setIntersection(Graph<V, E> src, Graph<V, E> dest) {
-        for(V v: dest.getVertices())
-            if(!src.containsVertex(v))
-                dest.removeVertex(v);
+        Collection<V> difference = new HashSet<V>();
+        difference.addAll(dest.getVertices());
+        difference.removeAll(src.getVertices());
+        for(V v: difference)
+            dest.removeVertex(v);
         setEdgeIntersection(src, dest);
         return dest;
     }
     
     static public <V, E> Graph<V, E> setDifference(Graph<V, E> src, Graph<V, E> dest) {
-        for(V v: dest.getVertices())
-            if(src.containsVertex(v))
+        for(V v: src.getVertices())
+            if(dest.containsVertex(v))
                 dest.removeVertex(v);
         return dest;
     }
@@ -68,22 +86,18 @@ public class Utils {
     }
     
     static public <V, E> Graph<V, E> setEdgeIntersection(Graph<V, E> src, Graph<V, E> dest) {
-        for(E e: dest.getEdges()) 
-            if(!src.containsEdge(e))
-                dest.removeEdge(e);
-        for(V v: dest.getVertices())
-            if(!src.containsVertex(v))
-                dest.removeVertex(v);
+        Collection<E> difference = new HashSet<E>();
+        difference.addAll(dest.getEdges());
+        difference.removeAll(src.getEdges());
+        for(E e: difference)
+            dest.removeEdge(e);
         return dest;
     }
     
     static public <V, E> Graph<V, E> setEdgeDifference(Graph<V, E> src, Graph<V, E> dest) {
-        for(E e: dest.getEdges()) 
-            if(src.containsEdge(e))
+        for(E e: src.getEdges()) 
+            if(dest.containsEdge(e))
                 dest.removeEdge(e);
-        for(V v: dest.getVertices())
-            if(src.containsVertex(v))
-                dest.removeVertex(v);
         return dest;
     }
     

@@ -348,8 +348,9 @@ public class Test {
 
     static void testInterferFromFile(String filename, FlatSet area, double a) {
         InterferometerRestoreFunction funx = new InterferometerRestoreFunction(
-                InterferometerRestoreFunction.Type.ByX, a, 0, 1), funy = new InterferometerRestoreFunction(
-                InterferometerRestoreFunction.Type.ByY, a, 0, 1);
+                        InterferometerRestoreFunction.Type.ByX, a, 0, 1),
+                funy = new InterferometerRestoreFunction(
+                        InterferometerRestoreFunction.Type.ByY, a, 0, 1);
         try {
             funx.setArea(area);
             funy.setArea(area);
@@ -359,10 +360,11 @@ public class Test {
             funy.createStrips();
             
             StripsInfoToImage sitix = new StripsInfoToImage(filename + ".bmp", funx.getCurrentStripsInfo());
-            sitix.write("mysuperfilex.bmp");
+            sitix.write(filename + ".x.color.bmp");
+            
             
             StripsInfoToImage sitiy = new StripsInfoToImage(filename + ".bmp", funy.getCurrentStripsInfo());
-            sitiy.write("mysuperfiley.bmp");
+            sitiy.write(filename + ".y.color.bmp");
             
             String filename1 = String.format(filename + "_x.txt"), filename2 = String
                     .format(filename + "_y.txt");
@@ -381,19 +383,23 @@ public class Test {
     public static void main(String args[]) {
         // testSolver();
         // testRestore1();
-        int[] sarray = new int[2];
-        sarray[0] = 3;
-        sarray[1] = 5;
+        //int[] sarray = new int[2];
+        //sarray[0] = 3;
+        //sarray[1] = 5;
         // sarray[2] = 7;
         // sarray[3] = 8;
         // testRestore2(26, sarray, 1, 0.05);
         // a, b, lambda!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // testInterfer(13, sarray, 1, 1, 1, 3, 1e-2, 0.1);
-        String file1 = "Кольцо Can", file2 = "54", file3 = "/123_sphere_3";
-        FlatSet area1 = getTestSet(218, 207, 85, 210), area2 = getTestSet(218,
-                207, 85, 210), // для 54.bmp
-        area3 = getTestSet(197, 197, 106, 197); // для 123_sphere_3
-        double a1 = 1, a2 = 30.0 / 420, a3 = 30.0 / 396;
-        testInterferFromFile(file2, area2, a2);
+        String file1 = "Кольцо Can",
+               file2 = "54",
+               file3 = "123_sphere_3";
+        FlatSet area1 = getTestSet(218, 207, 85, 210),
+                area2 = getTestSet(218, 207, 85, 210), // для 54.bmp
+                area3 = getTestSet(197, 197, 106, 197); // для 123_sphere_3
+        double a1 = 1,
+               a2 = 30.0 / 420,
+               a3 = 30.0 / 396;
+        testInterferFromFile(file3, area3, a3);
     }
 }
